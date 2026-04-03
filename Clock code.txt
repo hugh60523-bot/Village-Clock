@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fast Day Clock (Synced)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: white;
+      margin-top: 20%;
+    }
+    h1 {
+      font-size: 3em;
+    }
+    #clock {
+      font-size: 4em;
+      margin-top: 20px;
+    }
+    #phase {
+      margin-top: 10px;
+      font-size: 1.5em;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Fast Day Clock</h1>
+<div id="clock">--:--</div>
+<div id="phase"></div>
+
+<script>
+function updateClock() {
+  const now = new Date();
+
+  // Get UK time regardless of user's timezone
+  const ukTime = new Date(now.toLocaleString("en-GB", { timeZone: "Europe/London" }));
+
+  const hours = ukTime.getHours();
+  const minutes = ukTime.getMinutes();
+  const seconds = ukTime.getSeconds();
+
+  // Total minutes since 2:00 PM (14:00)
+  let realMinutes = hours * 60 + minutes + seconds / 60;
+  let minutesSinceStart = (realMinutes - 14 * 60 + 1440) % 1440;
+
+  let gameMinutes;
+
+  if (minutesSinceStart <= 14) {
+    // Daytime
+    gameMinutes = minutesSinceStart * 60;
+  } else if (minutesSinceStart <= 15) {
+    // Night
+    let nightProgress = minutesSinceStart - 14;
+    gameMinutes = (14 * 60) + (nightProgress * 600);
+  } else {
+    // Loop cycle every 15 minutes
+    minutesSinceStart = minutesSinceStart % 15;
+    return;
+  }
+
+  let totalGameMinutes = 7 * 60 + gameMinutes;
+  totalGameMinutes %= (24 * 60);
+
+  let gHours = Math.floor(totalGameMinutes / 60);
+  let gMinutes = Math.floor(totalGameMinutes % 60);
+
+  let displayHour = gHours % 12 || 12;
+  let ampm = gHours >= 12 ? "PM" : "AM";
+
+  document.getElementById("clock").textContent =
+    `${displayHour}:${gMinutes.toString().padStart(2, '0')} ${ampm}`;
+
+  document.getElementById("phase").textContent =
+    (minutesSinceStart <= 14)
+      ? "☀️ Daytime (1 hour/min)"
+      : "🌙 Night (entire night in 1 min)";
+}
+
+setInterval(updateClock, 100);
+updateClock();
+</script>
+
+</body>
+</html>
